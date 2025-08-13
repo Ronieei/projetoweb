@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{/fragments/layout :: layout(~{::head}, ~{::main})}">
+
+<head th:replace="~{fragments/head :: head(~{::title},~{})}">
+    <title th:fragment="title">Formulário de Agendamento</title>
+</head>
+
+<main>
+    <div th:if="${agenda != null and pacientes != null}" class="container py-4">
+        <div class="row justify-content-center">
+            <div class="col-md-10 col-lg-9">
+                <div class="card shadow-lg border-0">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Formulário de Agendamento</h4>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/agenda/update}" method="post">
+                            <input type="hidden" name="agendaId" th:value="${agenda.id}"/>
+
+                            <div class="row g-3">
+                                <!-- Data -->
+                                <div class="col-md-6">
+                                    <label for="data" class="form-label">Data</label>
+                                    <input type="date" id="data" class="form-control"
+                                           th:value="${#temporals.format(agenda.data, 'yyyy-MM-dd')}"
+                                           readonly/>
+                                    <input type="hidden" name="data" th:value="${agenda.data}" />
+                                </div>
+
+                                <!-- Horário Início -->
+                                <div class="col-md-6">
+                                    <label for="horarioInicio" class="form-label">Início</label>
+                                    <input type="text" id="horarioInicio" class="form-control"
+                                           th:value="${#temporals.format(agenda.horarioInicio, 'HH:mm')}" readonly/>
+                                    <input type="hidden" name="horarioInicio" th:value="${agenda.horarioInicio}" />
+                                </div>
+
+                                <!-- Horário Fim -->
+                                <div class="col-md-6">
+                                    <label for="horarioFim" class="form-label">Fim</label>
+                                    <input type="text" id="horarioFim" class="form-control"
+                                           th:value="${#temporals.format(agenda.horarioFim, 'HH:mm')}" readonly/>
+                                    <input type="hidden" name="horarioFim" th:value="${agenda.horarioFim}" />
+                                </div>
+
+                                <!-- Médico -->
+                                <div class="col-md-6">
+                                    <label for="medico" class="form-label">Médico(a)</label>
+                                    <input type="text" id="medico" class="form-control"
+                                           th:value="${agenda.medico != null ? agenda.medico.nome : 'Erro: médico ausente'}"
+                                           readonly/>
+                                    <input type="hidden" name="medico.id" th:value="${agenda.medico.id}" />
+                                </div>
+
+                                <!-- Status -->
+                                <div class="col-md-6" th:if="${agenda.status == status}">
+                                    <label for="status" class="form-label">Status</label>
+                                    <span id="status" class="form-control" disabled> Agendar</span>
+                                </div>
+
+                                <!-- Paciente -->
+                                <div class="col-md-6">
+                                    <label for="paciente" class="form-label">Paciente</label>
+                                    <select id="paciente" name="paciente.id" class="form-select" required>
+                                        <option value="">Selecione um paciente</option>
+                                        <option th:each="p : ${pacientes}"
+                                                th:value="${p.id}"
+                                                th:text="${p.nome}"
+                                                th:selected="${agenda.paciente != null and p.id == agenda.paciente.id}">
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <!-- Observação -->
+                                <div class="col-12">
+                                    <label for="observacao" class="form-label">Observação</label>
+                                    <input type="text" id="observacao" name="observacao" class="form-control"/>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 text-end">
+                                <button type="submit" class="btn btn-success px-4">Agendar Consulta</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</html>

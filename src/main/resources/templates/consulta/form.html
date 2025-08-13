@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{/fragments/layout :: layout(~{::head}, ~{::main})}">
+
+<head th:replace="~{fragments/head :: head(~{::title},~{})}">
+    <title th:fragment="title">Formulário de Agendamento</title>
+</head>
+
+<main>
+    <div th:if="${agenda != null and pacientes != null}" class="container py-4">
+        <div class="row justify-content-center">
+            <div class="col-md-10 col-lg-9">
+                <div class="card shadow-lg border-0">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Formulário de Consulta</h4>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/consulta/save}" method="post">
+                            <input type="hidden" name="agendaId" th:value="${agenda.id}"/>
+
+                            <div class="row g-3">
+                                <!-- Data -->
+                                <div class="col-md-2">
+                                    <label for="data" class="form-label">Data</label>
+                                    <input type="date" id="data" class="form-control"
+                                           th:value="${#temporals.format(agenda.data, 'yyyy-MM-dd')}"
+                                           readonly/>
+                                </div>
+
+                                <!-- Horário Início -->
+                                <div class="col-md-4">
+                                    <label for="horarioInicio" class="form-label">Início</label>
+                                    <input type="text" id="horarioInicio" class="form-control"
+                                           th:value="${#temporals.format(agenda.horarioInicio, 'HH:mm')}" readonly/>
+                                </div>
+
+                                <!-- Horário Fim -->
+                                <div class="col-md-4">
+                                    <label for="horarioFim" class="form-label">Fim</label>
+                                    <input type="text" id="horarioFim" class="form-control"
+                                           th:value="${#temporals.format(agenda.horarioFim, 'HH:mm')}" readonly/>
+                                </div>
+
+                                <!-- Médico -->
+                                <div class="col-md-6">
+                                    <label for="medico" class="form-label">Médico(a)</label>
+                                    <input type="text" id="medico" class="form-control"
+                                           th:value="${agenda.medico != null ? agenda.medico.nome : 'Erro: médico ausente'}"
+                                           readonly/>
+                                </div>
+
+                                <!-- Paciente -->
+                                <div class="col-md-6">
+                                    <label for="pacienteNome" class="form-label">Paciente</label>
+                                    <input type="text" id="pacienteNome" class="form-control"
+                                           th:value="${agenda.paciente.nome}" readonly />
+                                    <!-- Campo oculto para enviar o ID do paciente -->
+                                    <input type="hidden" name="pacienteId" th:value="${agenda.paciente.id}" />
+                                </div>
+
+                                <!-- Observação -->
+                                <div class="col-12">
+                                    <label for="observacao" class="form-label">Observação</label>
+                                    <input type="text" id="observacao" name="observacao" class="form-control"/>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-end">
+                                <button type="button" class="btn btn-outline-success border mt-4">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor"
+                                         class="bi bi-clipboard-heart" viewBox="0 0 16 16">
+                                        <path fill-rule="evenodd"
+                                              d="M5 1.5A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5v1A1.5 1.5 0 0 1 9.5 4h-3A1.5 1.5 0 0 1 5 2.5zm5 0a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5z"/>
+                                        <path
+                                                d="M3 1.5h1v1H3a1 1 0 0 0-1 1V14a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V3.5a1 1 0 0 0-1-1h-1v-1h1a2 2 0 0 1 2 2V14a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V3.5a2 2 0 0 1 2-2"/>
+                                        <path d="M8 6.982C9.664 5.309 13.825 8.236 8 12 2.175 8.236 6.336 5.31 8 6.982"/>
+                                    </svg>
+                                    Exame
+                                </button>
+                            </div>
+
+
+                            <div class="mt-4 text-end">
+                                <button type="submit" class="btn btn-success px-4">Agendar Consulta</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</html>

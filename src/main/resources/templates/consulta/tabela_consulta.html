@@ -1,0 +1,25 @@
+<table class="table table-striped" th:fragment="tabela_consultas(consultas)">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Data</th>
+        <th>Horário</th>
+        <th>Observação</th>
+        <th>Paciente</th>
+        <th>Médico</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="c : ${consultas}">
+        <td th:text="${c.id}"></td>
+        <td th:text="${#temporals.format(c.data, 'dd/MM/yyyy')}"></td>
+        <td th:text="${#temporals.format(c.horarioInicio, 'HH:mm')} + ' - ' + ${#temporals.format(c.horarioFim, 'HH:mm')}"></td>
+        <td th:text="${c.observacao != null and !c.observacao.isBlank()} ? ${c.observacao} : 'Sem Observação'"></td>
+        <td th:text="${c.paciente != null ? c.paciente.nome : 'Sem Paciente'}"></td>
+        <td th:text="${c.medico.nome}"></td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(consultas)}">
+        <td colspan="6" class="text-center">Nenhuma consulta encontrada.</td>
+    </tr>
+    </tbody>
+</table>

@@ -1,0 +1,35 @@
+<!-- templates/fragments/header.html -->
+<header th:fragment="header" xmlns:sec="http://www.w3.org/1999/xhtml">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">Sistema Médico</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Alternar navegação">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav" sec:authorize="isAuthenticated()">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','PACIENTE','SECRETARIA')">
+                        <a class="nav-link" th:href="@{/paciente/list}">Pacientes</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','MEDICO','SECRETARIA')">
+                        <a class="nav-link" th:href="@{/medico/list}">Médicos</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','SECRETARIA')">
+                        <a class="nav-link" th:href="@{/agenda/list}">Agenda</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','SECRETARIA')">
+                        <a class="nav-link" th:href="@{/consulta/list}">Consultas</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','MEDICO')">
+                        <a class="nav-link" th:href="@{/disponibilidade/form}">Disponibilidade Medica</a>
+                    </li>
+                </ul>
+            </div>
+            <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post" class="d-flex">
+                <button type="submit" class="btn btn-outline-danger"
+                        onclick="return confirm('Deseja realmente sair?')">Sair</button>
+            </form>
+        </div>
+    </nav>
+</header>

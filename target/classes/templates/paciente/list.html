@@ -1,0 +1,123 @@
+<!-- templates/paciente/list.html -->
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head(~{::title},~{})}">
+    <title th:fragment="title">Lista de Pacientes</title>
+</head>
+
+<body th:replace="~{/fragments/layout :: layout(~{::head}, ~{::main})}">
+    <main>
+        <div class="container mt-4">
+            <div class="d-flex justify-content-between align-items-end mb-3">
+                <a class="btn btn-primary mb-3" th:href="@{/paciente/form}">Novo Paciente</a>
+                <form class="mb-4" th:action="@{/paciente/pesquisar}" method="get">
+                    <div class="input-group">
+                        <input type="search" id="pesquisa" name="nome" class="form-control" placeholder="Nome do Paciente" >
+                        <button class="btn btn-outline-secondary" type="submit">Pesquisar</button>
+                    </div>
+                </form>
+            </div>
+
+            <div >
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Telefone</th>
+                            <th>Endereço:Logradouro-Bairro</th>
+                            <th>Cidade/Estado</th>
+                            <th>Ações</th>
+                            <th>Consultas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="paciente, indice : ${pacientes}" th:if="${pacientes != null and !#lists.isEmpty(pacientes)}">
+                            <td th:text="${paciente.id}"></td>
+                            <td th:text="${paciente.nome}"></td>
+                            <td th:text="${paciente.telefone}"></td>
+                            <td>
+                                <span th:if="${paciente.endereco != null}">
+                                    <span th:text="${paciente.endereco.logradouro}"></span><br/>
+                                    <span th:text="${paciente.endereco.bairro}"></span><br/>
+                                </span>
+                                <span th:if="${paciente.endereco == null}">
+                                    Não possui Endereço
+                                </span>
+                            </td>
+                            <td>
+                                <span th:if="${paciente.endereco != null}">
+                                    <span th:text="${paciente.endereco.cidade != null ? paciente.endereco.cidade.nome : ''}">Cidade</span> -
+                                    <span th:text="${paciente.endereco.cidade != null && paciente.endereco.cidade.estado != null ? paciente.endereco.cidade.estado.nome : ''}">Estado</span>
+                                </span>
+                            </td>
+                            <td>
+                                <a class="btn btn-sm btn-warning" th:href="@{/paciente/edit/{id}(id=${paciente.id})}">Editar</a>
+                                <a class="btn btn-sm btn-danger" th:href="@{/paciente/remove/{id}(id=${paciente.id})}"
+                                   onclick="return confirm('Tem certeza que deseja excluir este registro?')">Excluir</a>
+                            </td>
+                            <td>
+                                <!-- Botão que abre o modal -->
+                                <button type="button" class="btn btn-sm btn-info"
+                                        th:attr="data-bs-toggle='modal', data-bs-target='#modalConsulta_' + ${indice.index}">
+                                    Consultas
+                                </button>
+
+                                <!-- Modal incluído diretamente -->
+                                <div th:id="'modalConsulta_' + ${indice.index}" class="modal fade"
+                                     tabindex="-1" aria-labelledby="consultasModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="consultasModalLabel">Consultas</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                        aria-label="Fechar"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <table class="table table-striped">
+                                                    <thead>
+                                                    <tr>
+                                                        <th>ID</th>
+                                                        <th>Data</th>
+                                                        <th>Horário de Inicio</th>
+                                                        <th>Horário de Termino</th>
+                                                        <th>Observação</th>
+                                                        <th>Médico</th>
+                                                        <th>Status</th>
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                    <tr th:each="c : ${paciente.consultaList}" th:if="${c.status == (status.AGENDADA) || c.status == (status.CANCELADA)}">
+                                                        <td th:text="${c.id}"></td>
+                                                        <td th:text="${#temporals.format(c.data, 'dd/MM/yyyy')}"></td >
+                                                        <td th:text="${#temporals.format(c.horarioInicio, 'HH:mm')}"></td>
+                                                        <td th:text="${#temporals.format(c.horarioFim, 'HH:mm')}"> </td>
+                                                        <td th:text="${c.observacao}"></td>
+                                                        <td th:text="${c.medico.nome}"></td>
+                                                        <td th:text="${c.status}"></td>
+                                                    </tr>
+                                                    <tr th:if="${#lists.isEmpty(paciente.consultaList)}">
+                                                        <td colspan="7"  class="text-center">Nenhuma consulta encontrada.</td>
+                                                    </tr>
+
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${pacientes == null or (#lists.isEmpty(pacientes))}">
+                            <td colspan="5"  class="text-center">Nenhum paciente encontrado(a).</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

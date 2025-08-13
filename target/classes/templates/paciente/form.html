@@ -1,0 +1,93 @@
+<!-- templates/paciente/form.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{/fragments/layout :: layout(~{::head}, ~{::main})}">
+
+<head th:replace="~{fragments/head :: head(~{::title},~{})}">
+    <title th:fragment="title">Formulario</title>
+</head>
+
+<body>
+<main>
+    <div class="container mt-4">
+        <h2 class="mb-4">Formulário de Paciente</h2>
+
+        <form th:action="${paciente.id == null} ? @{/paciente/save} : @{/paciente/update}"
+              th:object="${paciente}" method="post">
+            <input type="hidden" th:field="*{id}">
+
+
+            <div class="mb-3">
+                <label for="login" class="form-label">Login:</label>
+                <input th:field="*{usuario.login}" type="text" id="login" name="login" class="form-control"
+                       placeholder="Login" />
+            </div>
+
+            <div class="mb-3">
+                <label for="senha" class="form-label">Senha:</label>
+                <input th:field="*{usuario.password}" type="text" id="senha" name="password" class="form-control"
+                       placeholder="Senha" />
+            </div>
+
+            <!-- xampo Nome -->
+            <div class="mb-3">
+                <label for="nome" class="form-label">Nome:</label>
+                <input type="text" id="nome" th:field="*{nome}" class="form-control"
+                       placeholder="Nome" th:errorclass="is-invalid">
+                <label class="invalid-feedback" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></label>
+            </div>
+
+            <!-- campo telefone -->
+            <div class="mb-3">
+                <label for="telefone" class="form-label">Telefone:</label>
+                <input type="text" id="telefone" th:field="*{telefone}" class="form-control"
+                       placeholder="Telefone" th:errorclass="is-invalid">
+                <small class="form-text text-muted">
+                    Informe o número de contato do seu dia a dia, para evitarmos transtornos.
+                </small>
+                <label class="invalid-feedback" th:if="${#fields.hasErrors('telefone')}" th:errors="*{telefone}"></label>
+            </div>
+
+            <div class="mb-4" >
+                <label class="form-label">Endereço:</label>
+                <div class="mb-3">
+
+                    <input type="text" id="logradouro" th:field="*{endereco.logradouro}" class="form-control"
+                           placeholder="Logradouro" th:errorclass="is-invalid">
+
+                    <label class="invalid-feedback" th:if="${#fields.hasErrors('endereco.logradouro')}" th:errors="*{endereco.logradouro}"></label>
+
+                    <input type="text" id="bairro" th:field="*{endereco.bairro}" class="form-control"
+                           placeholder="Bairro" th:errorclass="is-invalid">
+
+                    <label class="invalid-feedback" th:if="${#fields.hasErrors('endereco.bairro')}" th:errors="*{endereco.bairro}"></label>
+
+                    <div class="col-md-6">
+                        <select th:field="*{endereco.cidade.id}"
+                                id="cidade"
+                                class="form-select"
+                                th:errorclass="is-invalid">
+                            <option value="">Selecione uma cidade</option>
+                            <th:block th:each="entry : ${estadosComCidades}">
+                                <optgroup th:label="${entry.key.nome}">
+                                    <option th:each="cidade : ${entry.value}"
+                                            th:value="${cidade.id}"
+                                            th:text="${cidade.nome}">
+                                    </option>
+                                </optgroup>
+                            </th:block>
+                        </select>
+                        <div class="invalid-feedback"
+                             th:if="${#fields.hasErrors('endereco.cidade.id')}"
+                             th:errors="*{endereco.cidade.id}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Enviar</button>
+        </form>
+    </div>
+</main>
+</body>
+</html>

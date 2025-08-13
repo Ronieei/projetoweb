@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{/fragments/layout :: layout(~{::head}, ~{::body})}">
+
+<head th:replace="~{fragments/head :: head(~{::title},~{})}">
+  <title th:fragment="title">Lista de Horários Disponíveis</title>
+</head>
+
+<body>
+<main>
+  <div class="container my-4">
+    <div class="d-flex justify-content-between align-items-end mb-3">
+      <form th:action="@{/agenda/pesquisar}" method="get" class="row g-2 w-100 align-items-end">
+
+        <!-- Mensagens -->
+        <div th:if="${mensagemErro}" class="alert alert-warning alert-dismissible fade show" role="alert">
+          <span th:text="${mensagemErro}"></span>
+        </div>
+        <div th:if="${mensagemSucesso}" class="alert alert-success alert-dismissible fade show" role="alert">
+          <span th:text="${mensagemSucesso}"></span>
+        </div>
+
+        <!-- Data da consulta -->
+        <div class="col-md-2">
+          <label for="data" class="form-label small mb-1">Data</label>
+          <input type="date" class="form-control form-control-sm"
+                 id="data" name="data" th:value="${data}"/>
+        </div>
+
+        <!-- Horário de Início -->
+        <div class="col-md-1">
+          <label for="horarioInicio" class="form-label small mb-1">Início</label>
+          <input type="time" class="form-control form-control-sm" id="horarioInicio" name="horarioInicio"
+                 th:value="${horarioInicio}"/>
+        </div>
+
+        <!-- Horário de Término -->
+        <div class="col-md-1">
+          <label for="horarioFim" class="form-label small mb-1">Fim</label>
+          <input type="time" class="form-control form-control-sm" id="horarioFim" name="horarioFim"
+                 th:value="${horarioFim}"/>
+        </div>
+
+        <!-- Campo de status -->
+        <div class="col-md-2">
+          <label for="statusSelecionado" class="form-label small mb-1">Status</label>
+          <select class="form-select form-select-sm" id="statusSelecionado" name="statusSelecionado">
+            <option value="">Todos Status</option>
+            <option th:each="status : ${statusAgendaList}"
+                    th:value="${status.name()}"
+                    th:text="${status.name()}"
+                    th:selected="${statusSelecionado != null} ? ${status.name()} == ${statusSelecionado.name()} : false">
+            </option>
+          </select>
+        </div>
+
+        <!-- Campo de médicos -->
+        <div class="col-md-2">
+          <label for="medicoId" class="form-label small mb-1">Médico</label>
+          <select class="form-select form-select-sm" id="medicoId" name="medicoId">
+            <option value="">Todos Médicos</option>
+            <option th:each="m : ${medicos}"
+                    th:value="${m.id}"
+                    th:text="${m.nome}"
+                    th:selected="${medicoId != null} ? ${medicoId} == ${m.id} : false">
+            </option>
+          </select>
+        </div>
+
+        <!-- Botão de pesquisa -->
+        <div class="col-md-1 text-end">
+          <button type="submit" class="btn btn-primary btn-sm w-100">Pesquisar</button>
+        </div>
+      </form>
+    </div>
+
+
+    <!-- Tabela de agendas -->
+    <table class="table table-bordered table-striped">
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Data</th>
+        <th>Início</th>
+        <th>Término</th>
+        <th>Médico</th>
+        <th class="text-center">Status</th>
+        <th class="text-center">Ações</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="a : ${agendas}">
+        <td th:text="${a.id}"></td>
+        <td th:text="${#temporals.format(a.data, 'dd/MM/yyyy')}"></td>
+        <td th:text="${#temporals.format(a.horarioInicio, 'HH:mm')}"></td>
+        <td th:text="${#temporals.format(a.horarioFim, 'HH:mm')}"></td>
+        <td th:text="${a.medico.nome}"></td>
+        <td class="text-center" th:text="${a.status}"></td>
+        <td class="text-center">
+          <a th:if="${a.status == status_Agenda.DISPONIVEL}"
+             class="btn btn-sm btn-primary"
+             th:href="@{/agenda/form/{id}(id=${a.id})}">Agendar</a>
+          <a th:if="${a.status == status_Agenda.AGENDADO}"
+             class="btn btn-sm btn-primary"
+             th:href="@{/consulta/form/{id}(id=${a.id})}">Confirma Consulta</a>
+        </td>
+      </tr>
+      <tr th:if="${#lists.isEmpty(agendas)}">
+        <td colspan="7" class="text-center">Nenhum horário disponível encontrado.</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+</body>
+</html>

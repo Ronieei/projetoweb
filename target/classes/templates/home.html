@@ -1,0 +1,24 @@
+<!-- /templates/home.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+      th:replace="~{/fragments/layout :: layout(~{::head}, ~{::main})}">
+
+<head th:replace="~{fragments/head :: head(~{::title},~{})}">
+    <title th:fragment="title">Home</title>
+</head>
+
+<main>
+    <h2><mark>Bem-vindo</mark></h2>
+    <p>Gerencie pacientes, médicos e consultas de forma eficiente.</p>
+
+
+    <div sec:authorize="!isAuthenticated()" th:replace="~{/login :: login}"></div>
+
+    <div sec:authorize="isAuthenticated()">
+        <p>Bem-vindo, <span sec:authentication="name"></span>!</p>
+        <p>Acesse suas funcionalidades pelo menu acima.</p>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer::footer}"></footer>
+</html>

@@ -1,0 +1,86 @@
+<!-- /templates/disponibilidade/form -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{/fragments/layout :: layout(~{::head}, ~{::main})}">
+
+<head th:replace="~{fragments/head :: head(~{::title},~{})}">
+    <title th:fragment="title">Disponibilidade Médica</title>
+</head>
+
+<body>
+<main>
+    <div class="container py-4">
+        <div class="row justify-content-center">
+            <div class="col-md-10 col-lg-5">
+                <div class="card shadow-lg border-0">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">
+                            Definir Disponibilidade Médica
+                        </h4>
+                    </div>
+
+                    <div class="card-body">
+                        <form th:object="${disponibilidade}" method="post" th:action="@{/disponibilidade/save}">
+                            <input type="hidden" th:field="*{id}" />
+
+                            <div class="mb-3">
+                                <label for="medico" class="form-label">Médico</label>
+                                <select id="medico" class="form-select" th:field="*{medico.id}" required>
+                                    <option value="" selected >Selecione um médico</option>
+                                    <option th:each="m : ${medicos}" th:value="${m.id}" th:text="${m.nome}"></option>
+                                </select>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="dataI" class="form-label">Data de Início</label>
+                                    <input type="date" id="dataI" class="form-control" th:field="*{dataInicial}" />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="dataF" class="form-label">Data Final</label>
+                                    <input type="date" id="dataF" class="form-control" th:field="*{dataFinal}"/>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="horaInicio" class="form-label">Horário de Início</label>
+                                    <input type="time" id="horaInicio" class="form-control"  th:field="*{horarioInicio}"/>
+                                </div>
+                                <div class="col-md-6 mb-3" >
+                                    <label for="horaFim" class="form-label">Horário de Fim</label>
+                                    <input type="time" id="horaFim" class="form-control" th:field="*{horarioFim}"/>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="tempoConsulta" class="form-label">Tempo por Consulta (Horas:Minutos)</label>
+                                <input type="time" id="tempoConsulta" class="form-control"   th:field="*{tempoConsulta}" />
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="intervaloInicio" class="form-label">Intervalo Início</label>
+                                    <input type="time" id="intervaloInicio" class="form-control"  th:field="*{intervaloInicio}"/>
+                                </div>
+                                <div class="col-md-6 mb-3" >
+                                    <label for="intervaloFim" class="form-label">Intervalo Fim</label>
+                                    <input type="time" id="intervaloFim" class="form-control" th:field="*{intervaloFim}" />
+                                </div>
+                            </div>
+
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="bi bi-save me-2"></i>
+                                    Salvar Disponibilidade
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>
