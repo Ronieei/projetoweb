@@ -72,8 +72,12 @@ INSERT INTO usuario(login, password) VALUES ('medico1', '$2a$10$BbRbTfdIk1QAt4VX
 -- secretaria
 INSERT INTO usuario(login, password) VALUES ('secretaria1', '$2a$10$W55SaWi0Vhn55uy/6pQe6ONT8Ijvq7enYOsDR5C90NNgrMF9cht1a'); -- senha 123
 
-INSERT INTO usuario_roles(roles_id, usuarios_id) VALUES (1,1)
+INSERT INTO usuario_roles(roles_id, usuarios_id) VALUES (1,1);
+INSERT INTO usuario_roles(roles_id, usuarios_id) VALUES ( 3, 2);
 
+
+INSERT INTO Pessoa (nome,usuario_id) VALUES ('Dr. teste',2);
+INSERT INTO medico (id_pessoa, crm) VALUES (21, 'CRM12345');
 -- ESTADO
 
 INSERT INTO estado (nome, sigla) VALUES ('Acre', 'AC');

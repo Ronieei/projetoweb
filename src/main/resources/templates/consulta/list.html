@@ -47,11 +47,23 @@
                 <!-- Médico -->
                 <div class="col-md-2">
                     <select class="form-select-sm" id="medicoId" name="medicoId">
-                        <option value="-1">Todos Médicos</option>
+                        <option value="">Todos Médicos</option>
                         <option th:each="m : ${medicos}"
                                 th:value="${m.id}"
                                 th:text="${m.nome}"
                                 th:selected="${medicoSelecionado} == ${m.id}">
+                        </option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label for="statusSelecionado" class="form-label small mb-1">Status</label>
+                    <select class="form-select form-select-sm" id="statusSelecionado" name="statusSelecionado">
+                        <option value="">Todos Status</option>
+                        <option th:each="status : ${statusConsultaList}"
+                                th:value="${status.name()}"
+                                th:text="${status.name()}"
+                                th:selected="${statusSelecionado != null} ? ${status.name()} == ${statusSelecionado.name()} : false">
                         </option>
                     </select>
                 </div>
@@ -93,10 +105,10 @@
                     <a class="btn btn-sm btn-warning" th:href="@{/consulta/edit/{id}(id=${c.id})}">Editar</a>
                     <a class="btn btn-sm btn-danger" th:href="@{/consulta/remove/{id}(id=${c.id})}"
                        onclick="return confirm('Deseja realmente excluir?')">Excluir</a>
-                    <a th:if="${c.status == status_Consulta.AGENDADA}"
+                    <a th:if="${c.status == status_Consulta}"
                        class="btn btn-sm btn-primary" th:href="@{/consulta/cancelar/{id}(id=${c.id})}">Cancelar</a>
-                    <a th:if="${c.status == status_Consulta.AGENDADA}"
-                       class="btn btn-sm btn-success" th:href="@{/consulta/confirmar/{id}(id=${c.id})}">Confirmar</a>
+                    <a th:if="${c.status == status_Consulta}"
+                       class="btn btn-sm btn-success" th:href="@{/consulta/concluir/{id}(id=${c.id})}">Concluida</a>
                 </td>
             </tr>
             <tr th:if="${#lists.isEmpty(consultas)}">

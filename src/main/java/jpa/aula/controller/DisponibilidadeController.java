@@ -35,7 +35,7 @@ public class DisponibilidadeController {
     @PostMapping("/save")
     public ModelAndView save(Disponibilidade disponibilidade) {
         disponibilidadeRepository.save(disponibilidade);
-        return new ModelAndView("redirect:/medico/list");
+        return new ModelAndView("redirect:/agenda/list");
     }
 
     @PostMapping("/pesquisar-mes-ano")

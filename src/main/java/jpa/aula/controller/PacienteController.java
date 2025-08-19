@@ -5,6 +5,8 @@ import jakarta.validation.Valid;
 import jpa.aula.model.entity.*;
 import jpa.aula.model.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -72,11 +74,26 @@ public class PacienteController {
 
 
     @GetMapping("/list")
-    public ModelAndView listar(ModelMap model) {
-        model.addAttribute("pacientes", repository.pacienteList());
-        model.addAttribute("status", Status.AGENDADA);
+    public ModelAndView listar(ModelMap model, Authentication authentication) {
+        if (authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_PACIENTE"))) {
+
+            String usuarioName = authentication.getName();
+
+            Paciente paciente = repository.buscandoPacientePeloNomeDeUsuario(usuarioName)
+                    .orElseThrow(() -> new UsernameNotFoundException("Paciente não encontrado"));
+
+            // aqui passo como lista, para não quebrar no Thymeleaf que espera "pacientes"
+            model.addAttribute("pacientes", List.of(paciente));
+
+        } else {
+            model.addAttribute("pacientes", repository.pacienteList());
+        }
+
+        model.addAttribute("status", Status.CONFIRMADA);
         return new ModelAndView("/paciente/list", model);
     }
+
 
     @GetMapping("/remove/{id}")
     public ModelAndView remove(@PathVariable("id") Long id) {
@@ -105,11 +122,11 @@ public class PacienteController {
     @GetMapping("/pesquisar")
     public ModelAndView consultarPacientesPorNome(@RequestParam("nome") String nome, ModelMap model) {
         if (nome == null || nome.isBlank() || nome.isEmpty()) {
-            model.addAttribute("status", Status.AGENDADA);
+            model.addAttribute("status", Status.CONFIRMADA);
             return new ModelAndView("redirect:/paciente/list");
         }
         model.addAttribute("pacientes", repository.buscarPorPacientePeloNome(nome));
-        model.addAttribute("status", Status.AGENDADA);
+        model.addAttribute("status", Status.CONFIRMADA);
         return new ModelAndView("/paciente/list", model);
     }
 

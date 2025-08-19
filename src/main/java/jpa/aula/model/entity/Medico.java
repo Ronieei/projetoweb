@@ -22,12 +22,12 @@ public class Medico extends Pessoa implements Serializable {
     @Size(min = 8, max = 8, message = "FORMATO - CRM12345")
     private String crm;
 
-    @OneToMany(mappedBy = "medico")
+    @OneToMany(mappedBy = "medico", cascade = CascadeType.PERSIST)
     private List<Consulta> consultaList;
 
-    @OneToMany(mappedBy = "medico")
+    @OneToMany(mappedBy = "medico", cascade = CascadeType.PERSIST)
     private List<Disponibilidade> disponibilidadeLista;
 
-    @OneToMany(mappedBy = "medico")
+    @OneToMany(mappedBy = "medico", cascade = CascadeType.PERSIST)
     private List<Agenda> agendaList;
 }

@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR"
       xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{/fragments/layout :: layout(~{::head}, ~{::main})}">
+      th:replace="~{/fragments/layout :: layout(~{::head}, ~{::main})}" xmlns:sec="http://www.w3.org/1999/xhtml">
 
 <head th:replace="~{fragments/head :: head(~{::title},~{})}">
     <title th:fragment="title">Lista de Médicos</title>
@@ -11,7 +11,7 @@
 <body>
 <main>
     <div class="container mt-4">
-        <div class="d-flex justify-content-between align-items-end mb-3">
+        <div class="d-flex justify-content-between align-items-end mb-3"  sec:authorize="hasAnyRole('ROLE_ADMIN')">
             <a class="btn btn-primary mb-3" th:href="@{/medico/form}">Novo Médico</a>
             <!-- a class="btn btn-primary mb-3" th:href="@{/disponibilidade/form}">Formulário de Disponibilidade</a -->
             <form class="mb-4" th:action="@{/medico/pesquisar}" method="get">
@@ -87,7 +87,7 @@
                                             </tr>
                                             </thead>
                                             <tbody>
-                                            <tr th:each="c : ${medico.consultaList}" th:if="${c.status == (status.AGENDADA) || c.status == (status.CONFIRMADA)  }">
+                                            <tr th:each="c : ${medico.consultaList}" th:if="${ c.status == (status.CONFIRMADA) || c.status == c.status.CANCELADA  }">
                                                     <td th:text="${c.id}"></td>
                                                     <td th:text="${#temporals.format(c.data, 'dd/MM/yyyy')}"></td>
                                                     <td th:text="${#temporals.format(c.horarioInicio, 'HH:mm')}"></td>
@@ -96,7 +96,7 @@
                                                     <td th:text="${c.medico.nome}"></td>
                                                     <td th:text="${c.status}"></td>
                                                     <td >
-                                                        <a th:if="${c.status == status.AGENDADA}" class="btn btn-sm btn btn-primary" th:href="@{/consulta/cancelar/{id}(id=${c.id})}">Cancelar</a>
+                                                        <a th:if="${c.status == status.CONFIRMADA}" class="btn btn-sm btn btn-primary" th:href="@{/consulta/cancelar/{id}(id=${c.id})}">Cancelar</a>
                                                         <a th:if="${c.status == status.CONFIRMADA}" class="btn btn-sm btn btn-success" th:href="@{/consulta/concluir/{id}(id=${c.id})}">Concluida</a>
                                                     </td>
                                             </tr>

@@ -23,10 +23,10 @@ public class Paciente extends Pessoa implements Serializable {
     @Size(min = 9, max = 13, message = "O telefone deve ser DDD 12345-1234 ")
     private String telefone;
 
-    @OneToMany(mappedBy = "paciente")
+    @OneToMany(mappedBy = "paciente", cascade = CascadeType.PERSIST)
     List<Consulta> consultaList;
 
-    @OneToMany(mappedBy = "paciente")
+    @OneToMany(mappedBy = "paciente", cascade = CascadeType.PERSIST)
     private List<Agenda> agendaList;
 
 }

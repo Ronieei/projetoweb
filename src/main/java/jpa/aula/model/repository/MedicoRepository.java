@@ -3,11 +3,14 @@ package jpa.aula.model.repository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
+import jakarta.persistence.TypedQuery;
 import jpa.aula.model.entity.Consulta;
 import jpa.aula.model.entity.Medico;
+import jpa.aula.model.entity.Paciente;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class MedicoRepository {
@@ -55,5 +58,18 @@ public class MedicoRepository {
         return query.getResultList();
     }
 
+    public Optional<Medico> buscandoPacientePeloNomeDeUsuario(String username) {
+        TypedQuery<Medico> query = em.createQuery(
+                "SELECT m FROM Medico m WHERE m.usuario.login = :username",
+                Medico.class
+        );
+        query.setParameter("username", username);
+
+        try {
+            return Optional.of(query.getSingleResult());
+        } catch (Exception e) {
+            return Optional.empty();
+        }
+    }
 
 }

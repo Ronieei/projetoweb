@@ -16,9 +16,18 @@ public class Exame {
     @JoinColumn(name = "consulta_id", nullable = false)
     private Consulta consulta;
 
-    @Column(nullable = false)
     private String tipo;
 
     @Column(length = 500)
     private String observacoes;
+
+    @Override
+    public String toString() {
+        return "Exame{" +
+                "id=" + id +
+                ", consulta=" + consulta +
+                ", tipo='" + tipo + '\'' +
+                ", observacoes='" + observacoes + '\'' +
+                '}';
+    }
 }

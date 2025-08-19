@@ -1,6 +1,6 @@
 <!-- templates/medico/form.html -->
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml"
       th:replace="~{/fragments/layout :: layout(~{::head}, ~{::main})}">
 
 <head th:replace="~{fragments/head :: head(~{::title},~{})}">
@@ -21,6 +21,19 @@
                 </button>
             </div>
 
+            <div class="mb-3">
+                <label for="login" class="form-label">Login:</label>
+                <input th:field="*{usuario.login}" type="text" id="login" name="login" class="form-control"
+                       placeholder="Login" />
+            </div>
+
+            <div class="mb-3">
+                <label for="senha" class="form-label">Senha:</label>
+                <input th:field="*{usuario.password}" type="text" id="senha" name="password" class="form-control"
+                       placeholder="Senha" />
+            </div>
+
+
             <div>
                 <!-- Campo Nome -->
                 <div class="mb-3">
@@ -38,22 +51,65 @@
                     <label class="invalid-feedback" th:if="${#fields.hasErrors('crm')}" th:errors="*{crm}"></label>
                 </div>
 
+            <div class="mb-4" >
+                <label class="form-label">Endereço:</label>
+                <div class="mb-3">
 
-                <div class="card">
-                    <h5 class="card-header">Responsabilidades</h5>
-                    <div class="card-body">
-                        <h5 class="card-title">Apenas confirar antes de submeter o formulario para evitar Erros de Papeis a alguma pessoa</h5>
-                        <div th:each="role : ${roles}" class="form-check">
-                            <input class="form-check-input" type="checkbox"
-                                   th:id="${'role_' + role.id}"
-                                   th:name="${role.nome}"
-                                   th:value="${role.id}"/>
+                    <input type="text" id="logradouro" th:field="*{endereco.logradouro}" class="form-control"
+                           placeholder="Logradouro" th:errorclass="is-invalid">
 
-                            <label th:for="${'role_' + role.id}" class="form-check-label" th:text="${role.nome}"></label>
+                    <label class="invalid-feedback" th:if="${#fields.hasErrors('endereco.logradouro')}" th:errors="*{endereco.logradouro}"></label>
+
+                    <input type="text" id="bairro" th:field="*{endereco.bairro}" class="form-control"
+                           placeholder="Bairro" th:errorclass="is-invalid">
+
+                    <label class="invalid-feedback" th:if="${#fields.hasErrors('endereco.bairro')}" th:errors="*{endereco.bairro}"></label>
+
+                    <div class="col-md-6">
+                        <select th:field="*{endereco.cidade.id}"
+                                id="cidade"
+                                class="form-select"
+                                th:errorclass="is-invalid">
+                            <option value="">Selecione uma cidade</option>
+                            <th:block th:each="entry : ${estadosComCidades}">
+                                <optgroup th:label="${entry.key.nome}">
+                                    <option th:each="cidade : ${entry.value}"
+                                            th:value="${cidade.id}"
+                                            th:text="${cidade.nome}">
+                                    </option>
+                                </optgroup>
+                            </th:block>
+                        </select>
+                        <div class="invalid-feedback"
+                             th:if="${#fields.hasErrors('endereco.cidade.id')}"
+                             th:errors="*{endereco.cidade.id}">
                         </div>
                     </div>
                 </div>
             </div>
+
+
+                <div class="card" sec:authorize="hasAnyRole('ROLE_ADMIN')">
+                    <h5 class="card-header">Responsabilidades</h5>
+                    <div class="card-body">
+                        <h5 class="card-title">Apenas confirmar antes de submeter o formulário para evitar erros de papéis</h5>
+
+                        <div th:each="role : ${roles}" class="form-check">
+                            <input class="form-check-input"
+                                   type="checkbox"
+                                   th:name="rolesSelecionadas"
+                            th:value="${role.id}"
+                            th:id="${'role_' + role.id}"/>
+                            <label class="form-check-label"
+                                   th:for="${'role_' + role.id}"
+                                   th:text="${role.nome}"></label>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+
         </form>
     </div>
 </main>

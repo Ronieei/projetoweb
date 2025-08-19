@@ -3,11 +3,14 @@ package jpa.aula.model.repository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
+import jakarta.persistence.TypedQuery;
 import jpa.aula.model.entity.Consulta;
 import jpa.aula.model.entity.Paciente;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class PacienteRepository {
@@ -46,9 +49,39 @@ public class PacienteRepository {
         em.merge(p);
     }
 
-    public List<Paciente> buscarPorPacientePeloNome(String nome) {
+    public List<Paciente> buscarPorPacientePelN(String nome) {
         Query query = em.createQuery("SELECT p FROM Paciente p WHERE p.nome LIKE :nome", Paciente.class);
         query.setParameter("nome", "%" + nome + "%");
         return query.getResultList();
     }
+
+    public List<Paciente> buscarPorPacientePeloNome(String nome) {
+        if (nome == null || nome.isBlank()) {
+            return Collections.emptyList();
+        }
+
+        TypedQuery<Paciente> q = em.createQuery(
+                "SELECT p FROM Paciente p WHERE LOWER(p.nome) LIKE LOWER(:nome)",
+                Paciente.class
+        );
+        q.setParameter("nome", "%" + nome.trim() + "%");
+        return q.getResultList();
+    }
+
+    public Optional<Paciente> buscandoPacientePeloNomeDeUsuario(String username) {
+        TypedQuery<Paciente> query = em.createQuery(
+                "SELECT p FROM Paciente p WHERE p.usuario.login = :username",
+                Paciente.class
+        );
+        query.setParameter("username", username);
+
+        try {
+            return Optional.of(query.getSingleResult());
+        } catch (Exception e) {
+            return Optional.empty();
+        }
+    }
+
+
+
 }

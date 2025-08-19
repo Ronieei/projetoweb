@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -14,6 +16,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Scope("session")
+@Component
 public class Consulta {
 
     @Id
@@ -46,4 +50,18 @@ public class Consulta {
     @OneToMany(mappedBy = "consulta", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Exame> exames = new ArrayList<>();
 
+    @Override
+    public String toString() {
+        return "Consulta{" +
+                "id=" + id +
+                ", data=" + data +
+                ", horarioInicio=" + horarioInicio +
+                ", horarioFim=" + horarioFim +
+                ", status=" + status +
+                ", observacao='" + observacao + '\'' +
+                ", medico=" + medico +
+                ", paciente=" + paciente +
+                ", exames=" + exames +
+                '}';
+    }
 }

@@ -8,7 +8,9 @@ import jpa.aula.model.repository.AgendaRepository;
 import jpa.aula.model.repository.ConsultaRepository;
 import jpa.aula.model.repository.MedicoRepository;
 import jpa.aula.model.repository.PacienteRepository;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,8 +22,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.LoggerFactory;
+
+@Scope("request")
 @Transactional
 @Controller
 @RequestMapping("consulta")
@@ -34,17 +40,41 @@ public class ConsultaController {
     private MedicoRepository medicoRepository;
     @Autowired
     private AgendaRepository agendaRepository;
+    // session do professor
+    @Autowired
+    Consulta consulta; //na view para acessar a lista de exame, você faz um for each -> {session.consulta.exames}
+
+    private static final Logger logger = LoggerFactory.getLogger(ConsultaController.class);
 
     @GetMapping("/form/{id}")
     public ModelAndView form(@PathVariable("id") Long id, Model model) {
         Agenda agenda = agendaRepository.findById(id);
-        if (agenda == null) {
-            return new ModelAndView("redirect:/consulta/list");
+
+
+        if (agenda == null || id == null) {
+            return new ModelAndView("redirect:/agenda/list");
         }
-        model.addAttribute("pacientes", pacienteRepository.pacienteList());
         model.addAttribute("agenda", agenda);
+        model.addAttribute("exame", new Exame());
         return new ModelAndView("/consulta/form");
     }
+
+    // adição do exame
+    @PostMapping("/exame/add")
+    public ModelAndView addExame(@RequestParam(value = "agendaId") Long agendaId, Exame exame, Model model){
+        // adiciona o exame na sessão ou bean de consulta
+        consulta.getExames().add(exame);
+
+        // adiciona a agenda no model
+        Agenda agenda = agendaRepository.findById(agendaId);
+
+
+        // adiciona um novo objeto exame para o form
+        model.addAttribute("exame", new Exame());
+
+        return new ModelAndView("/consulta/form", "agenda", agenda);
+    }
+
 
     @GetMapping("/list")
     public ModelAndView listar(@DateTimeFormat(pattern = "dd/MM/yyyy") LocalDate dataInicial,
@@ -69,10 +99,9 @@ public class ConsultaController {
         model.addAttribute("horarioFim", horarioFim);
         model.addAttribute("dataInicial", dataInicial);
         model.addAttribute("dataFinal", dataFinal);
-        model.addAttribute("status_Agenda", StatusAgenda.DISPONIVEL);
-        model.addAttribute("status_Consulta", Status.AGENDADA);
-        //model.addAttribute("agendas", agendaRepository.findAll());
-        model.addAttribute("consultas", consultaRepository.buscarTodasConsultasDeTodosMedicos(dataInicial, dataFinal, horarioInicio, horarioFim, Status.AGENDADA));
+        model.addAttribute("status_Consulta", Status.CONFIRMADA);
+        model.addAttribute("statusConsultaList", Status.values());
+        model.addAttribute("consultas", consultaRepository.buscarTodasConsultasDeTodosMedicos(dataInicial, dataFinal, horarioInicio, horarioFim, Status.CONFIRMADA));
         model.addAttribute("medicos", medicoRepository.medicoList());
         return new ModelAndView("/consulta/list");
     }
@@ -83,6 +112,7 @@ public class ConsultaController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFinal,
             @RequestParam(required = false) @DateTimeFormat(pattern = "HH:mm") LocalTime horarioInicio,
             @RequestParam(required = false) @DateTimeFormat(pattern = "HH:mm") LocalTime horarioFim,
+            @RequestParam(required = false) Status statusSelecionado,
             @RequestParam(required = false) Long medicoId,
             Model model,
             RedirectAttributes redirectAttributes) {
@@ -100,9 +130,19 @@ public class ConsultaController {
             horarioFim = ConfiguracaoSpringMVC.obterHoraMaxima();
         }
 
-        if (medicoId == null) {
-            redirectAttributes.addFlashAttribute("mensagemErro", "Preencha todos os campos para realizar a pesquisa.");
-            return "redirect:/consulta/list";
+        List<Consulta> consultas = new ArrayList<>();
+
+        boolean filtrarPorTodosMedicos = (medicoId == null);
+        boolean filtrarPorTodosStatus = (statusSelecionado == null);
+
+        if (filtrarPorTodosMedicos && filtrarPorTodosStatus) {
+           consultas =  consultaRepository.buscarTodasConsultasDeTodosMedicoseTodosStatus(dataInicial, dataFinal, horarioInicio, horarioFim);
+        } else if (filtrarPorTodosMedicos) {
+            consultas = consultaRepository.buscarTodasConsultasDeTodosMedicoseDoStatusSelecionado(dataInicial, dataFinal, horarioInicio, horarioFim, statusSelecionado);
+        } else if (filtrarPorTodosStatus) {
+            consultas = consultaRepository.buscaTodasConsultasDeUmMedicoeTodosStatus(dataInicial, dataFinal, horarioInicio, horarioFim, medicoId);
+        } else {
+            consultas = consultaRepository.buscaTodasConsultasDeUmMedicoeUmStatus(dataInicial, dataFinal, horarioInicio, horarioFim, statusSelecionado, medicoId);
         }
 
 
@@ -111,31 +151,46 @@ public class ConsultaController {
         model.addAttribute("horarioInicio", horarioInicio);
         model.addAttribute("horarioFim", horarioFim);
         model.addAttribute("medicoSelecionado", medicoId);
-        model.addAttribute("status_Agenda", StatusAgenda.DISPONIVEL);
+        model.addAttribute("statusConsultaList", Status.values());
+        model.addAttribute("status_Consulta", Status.CONFIRMADA);
+        model.addAttribute("consultas",  consultas);
         model.addAttribute("medicos", medicoRepository.medicoList());
 
         return "consulta/list";
     }
 
     @PostMapping("/save")
-    public ModelAndView salvar(@RequestParam("agendaId") Long agendaId, @RequestParam("pacienteId") Long pacienteId,
-                               @RequestParam(value = "observacao", required = false) String observacao, Model model) {
+    public ModelAndView salvar(@RequestParam(value = "agendaId", required = true) Long agendaId, Model model) {
         Agenda agenda = agendaRepository.findById(agendaId);
-        Paciente paciente = pacienteRepository.findById(pacienteId);
-        if (agenda == null || paciente == null) {
-            model.addAttribute("mensagemErro", "Slot ou paciente inválido.");
-            return new ModelAndView("redirect:/consulta/list");
+
+        if (agenda == null || agenda.getPaciente() == null || agenda.getMedico() == null) {
+            model.addAttribute("mensagemErro", "Slot ou paciente/medico inválido.");
+            return new ModelAndView("redirect:/agenda/list");
         }
+
         agenda.setStatus(StatusAgenda.RESERVADO);
         agendaRepository.update(agenda);
-        Consulta consulta = consultaRepository.criarConsultaAPartirDeAgenda(agenda, paciente);
-        if (observacao != null && !observacao.isBlank()) {
-            consulta.setObservacao(observacao);
+
+        // Cria consulta baseada na agenda
+        Consulta c = consultaRepository.criarConsultaAPartirDeAgenda(agenda);
+
+        // Associa exames da session  a nova consulta
+        for (Exame e : consulta.getExames()) {
+            e.setConsulta(c);
         }
-        consultaRepository.save(consulta);
+        c.getExames().addAll(consulta.getExames());
+
+        // Salva a consulta correta
+        consultaRepository.save(c);
+
+        // Limpandos os  exames da sessão para a praxima consulta
+        consulta.getExames().clear();
+
         model.addAttribute("mensagemSucesso", "Consulta agendada com sucesso!");
         return new ModelAndView("redirect:/consulta/list");
     }
+
+
 
     @PostMapping("/update")
     public ModelAndView update(@Valid Consulta consulta, BindingResult result, Model model) {
@@ -143,7 +198,7 @@ public class ConsultaController {
             model.addAttribute("pacientes", pacienteRepository.pacienteList());
             return new ModelAndView("/consulta/form", "consulta", consulta);
         }
-        consulta.setStatus(Status.AGENDADA);
+        consulta.setStatus(Status.CONFIRMADA);
         consultaRepository.update(consulta);
         return new ModelAndView("redirect:/consulta/list");
     }

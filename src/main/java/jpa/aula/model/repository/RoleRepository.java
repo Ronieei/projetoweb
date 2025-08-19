@@ -28,4 +28,10 @@ public class RoleRepository {
         return em.createQuery("SELECT r FROM Role r", Role.class).getResultList();
     }
 
+    public List<Role> findAllById(List<Long> ids) {
+        return em.createQuery("SELECT r FROM Role r WHERE r.id IN :ids", Role.class)
+                .setParameter("ids", ids)
+                .getResultList();
+    }
+
 }
