@@ -7,8 +7,11 @@ import jakarta.persistence.TypedQuery;
 import jpa.aula.model.entity.Consulta;
 import jpa.aula.model.entity.Medico;
 import jpa.aula.model.entity.Paciente;
+import jpa.aula.model.entity.Status;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -58,7 +61,7 @@ public class MedicoRepository {
         return query.getResultList();
     }
 
-    public Optional<Medico> buscandoPacientePeloNomeDeUsuario(String username) {
+    public Optional<Medico> buscandoMedicoPeloNomeDeUsuario(String username) {
         TypedQuery<Medico> query = em.createQuery(
                 "SELECT m FROM Medico m WHERE m.usuario.login = :username",
                 Medico.class

@@ -4,12 +4,15 @@ import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jpa.aula.config.ConfiguracaoSpringMVC;
 import jpa.aula.model.entity.Agenda;
+import jpa.aula.model.entity.Medico;
 import jpa.aula.model.entity.StatusAgenda;
 import jpa.aula.model.repository.AgendaRepository;
 import jpa.aula.model.repository.MedicoRepository;
 import jpa.aula.model.repository.PacienteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -81,7 +84,8 @@ public class AgendaController {
             @RequestParam(required = false) @DateTimeFormat(pattern = "dd/MM/yyyy") LocalDate data,
             @RequestParam(required = false) @DateTimeFormat(pattern = "HH:mm") LocalTime horarioInicio,
             @RequestParam(required = false) @DateTimeFormat(pattern = "HH:mm") LocalTime horarioFim,
-            Model model) {
+            Model model,
+            Authentication authentication) { // <- pegar usuário logado
 
         data = (data != null) ? data : ConfiguracaoSpringMVC.obterDataFormatada();
         horarioInicio = (horarioInicio != null) ? horarioInicio : ConfiguracaoSpringMVC.obterHoraMinima();
@@ -92,11 +96,30 @@ public class AgendaController {
         model.addAttribute("horarioFim", horarioFim);
         model.addAttribute("statusAgendaList", StatusAgenda.values());
         model.addAttribute("status_Agenda", StatusAgenda.DISPONIVEL);
-        model.addAttribute("agendas", agendaRepository.buscarTodasAgendasDoDiaDisponiveis());
         model.addAttribute("medicos", medicoRepository.medicoList());
 
+        List<Agenda> agendas;
+
+        boolean isMedico = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_MEDICO"));
+
+        if (isMedico) {
+            // Buscar médico logado pelo username
+            String usuarioNome = authentication.getName();
+            Medico medico = medicoRepository.buscandoMedicoPeloNomeDeUsuario(usuarioNome)
+                    .orElseThrow(() -> new UsernameNotFoundException("Medico não encontrado"));
+
+            agendas = agendaRepository.buscaTodasAgendasDeUmMedicoeTodosStatus(data, horarioInicio, horarioFim, medico.getId());
+
+        } else {
+            // Admin ou outro perfil: todas agendas do dia disponíveis
+            agendas = agendaRepository.buscarTodasAgendasDoDiaDisponiveis();
+        }
+
+        model.addAttribute("agendas", agendas);
         return new ModelAndView("agenda/list");
     }
+
 
     @GetMapping("/pesquisar")
     public String pesquisarAgendas(
@@ -106,7 +129,8 @@ public class AgendaController {
             @RequestParam(required = false) StatusAgenda statusSelecionado,
             @RequestParam(name = "medicoId", required = false) Long medicoId,
             Model model,
-            RedirectAttributes redirectAttributes) {
+            RedirectAttributes redirectAttributes,
+            Authentication authentication) { // <- pegando o usuário logado
 
         if (data == null || horarioInicio == null || horarioFim == null) {
             redirectAttributes.addFlashAttribute("mensagemErro", "Preencha todos os campos obrigatórios.");
@@ -114,6 +138,20 @@ public class AgendaController {
         }
 
         List<Agenda> agendas;
+
+        // Verificar se usuário é médico
+        boolean isMedico = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_MEDICO"));
+
+        if (isMedico) {
+            // Médico só vê suas agendas, independente do medicoId enviado
+            // Buscar médico logado pelo username
+            String usuarioNome = authentication.getName();
+            Medico medico = medicoRepository.buscandoMedicoPeloNomeDeUsuario(usuarioNome)
+                    .orElseThrow(() -> new UsernameNotFoundException("Medico não encontrado"));
+
+            medicoId = medico.getId(); // força filtro pelo médico logado
+        }
 
         boolean filtrarPorTodosMedicos = (medicoId == null);
         boolean filtrarPorTodosStatus = (statusSelecionado == null);
@@ -129,8 +167,8 @@ public class AgendaController {
         }
 
         if (agendas == null || agendas.isEmpty()) {
-            redirectAttributes.addFlashAttribute("mensagemErro", "Nenhuma agenda encontrada com os filtros informados."+ filtrarPorTodosMedicos);
-            //return "redirect:/agenda/list";
+            redirectAttributes.addFlashAttribute("mensagemErro", "Nenhuma agenda encontrada com os filtros informados.");
+            return "redirect:/agenda/list";
         }
 
         model.addAttribute("data", data);

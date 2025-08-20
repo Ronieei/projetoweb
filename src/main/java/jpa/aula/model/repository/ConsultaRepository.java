@@ -217,4 +217,30 @@ public class ConsultaRepository {
 
         return query.getResultList();
     }
+
+    public List<Consulta> buscarConsultasDoMedico(
+            Long medicoId,
+            LocalDate dataInicial,
+            LocalDate dataFinal,
+            LocalTime horarioInicio,
+            LocalTime horarioFim,
+            Status status) {
+
+        String jpql = "SELECT c FROM Consulta c " +
+                "WHERE c.medico.id = :medicoId " +
+                "AND c.data BETWEEN :dataInicial AND :dataFinal " +
+                "AND ((c.horarioInicio BETWEEN :horarioInicio AND :horarioFim) " +
+                "     OR (c.horarioFim BETWEEN :horarioInicio AND :horarioFim)) " +
+                "AND c.status = :status";
+
+        TypedQuery<Consulta> query = em.createQuery(jpql, Consulta.class);
+        query.setParameter("medicoId", medicoId);
+        query.setParameter("dataInicial", dataInicial);
+        query.setParameter("dataFinal", dataFinal);
+        query.setParameter("horarioInicio", horarioInicio);
+        query.setParameter("horarioFim", horarioFim);
+        query.setParameter("status", status);
+
+        return query.getResultList();
+    }
 }

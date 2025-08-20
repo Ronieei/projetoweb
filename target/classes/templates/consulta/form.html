@@ -96,24 +96,34 @@
                     </div>
                     <div>
                       <h4 class="mt-4">Exames Pedidos</h4>
-                      <table class="table table-bordered table-striped">
-                          <thead>
-                          <tr>
-                              <th>Tipo de Exame</th>
-                              <th>Observações</th>
-                          </tr>
-                          </thead>
-                          <tbody>
-                          <tr th:each="e : ${session.consulta.exames}">
-                              <td th:text="${e.tipo}"></td>
-                              <td th:text="${e.observacoes}"></td>
-                          </tr>
-                          <tr th:if="${#lists.isEmpty(session.consulta.exames)}">
-                              <td colspan="2" class="text-center">Nenhum Pedido de Exame.</td>
-                          </tr>
-                          </tbody>
-                      </table>
-                  </div>
+                        <table class="table table-bordered table-striped">
+                            <thead>
+                            <tr>
+                                <th>Tipo de Exame</th>
+                                <th>Observações</th>
+                                <th class="text-center">Ações</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="e, iterStat : ${session.consulta.exames}">
+                                <td th:text="${e.tipo}"></td>
+                                <td th:text="${e.observacoes}"></td>
+                                <td class="text-center">
+                                    <!-- Botão de remover -->
+                                    <a th:href="@{/consulta/exame/remove/{index}(index=${iterStat.index}, agendaId=${agenda.id})}"
+                                       class="btn btn-danger btn-sm"
+                                       title="Remover">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(session.consulta.exames)}">
+                                <td colspan="3" class="text-center">Nenhum Pedido de Exame.</td>
+                            </tr>
+                            </tbody>
+                        </table>
+
+                    </div>
                 </div>
             </div>
         </div>

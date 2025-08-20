@@ -73,11 +73,13 @@ INSERT INTO usuario(login, password) VALUES ('medico1', '$2a$10$BbRbTfdIk1QAt4VX
 INSERT INTO usuario(login, password) VALUES ('secretaria1', '$2a$10$W55SaWi0Vhn55uy/6pQe6ONT8Ijvq7enYOsDR5C90NNgrMF9cht1a'); -- senha 123
 
 INSERT INTO usuario_roles(roles_id, usuarios_id) VALUES (1,1);
-INSERT INTO usuario_roles(roles_id, usuarios_id) VALUES ( 3, 2);
+INSERT INTO usuario_roles(roles_id, usuarios_id) VALUES ( 2, 3);
+INSERT INTO usuario_roles(roles_id, usuarios_id) VALUES ( 3, 4);
 
-
-INSERT INTO Pessoa (nome,usuario_id) VALUES ('Dr. teste',2);
+-- 21
+INSERT INTO Pessoa (nome,usuario_id) VALUES ('Dr. teste',3);
 INSERT INTO medico (id_pessoa, crm) VALUES (21, 'CRM12345');
+
 -- ESTADO
 
 INSERT INTO estado (nome, sigla) VALUES ('Acre', 'AC');
@@ -439,6 +441,6 @@ INSERT INTO cidade (nome, estado_id) VALUES ('Formoso do Araguaia', 27);
 -- ednreco
 INSERT INTO endereco (logradouro, bairro, cidade_id) VALUES ('Rua das Flores','Centro', 261);
 
--- pessoa PACIENTE
+-- pessoa PACIENTE 22
 INSERT INTO pessoa (nome, endereco_id) VALUES ('paciente de teste', 1);
-INSERT INTO paciente (id_pessoa, telefone) VALUES (21, '11987654330');
+INSERT INTO paciente (id_pessoa, telefone) VALUES (22, '11987654330');

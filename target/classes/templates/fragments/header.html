@@ -15,10 +15,10 @@
                     <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','MEDICO','SECRETARIA')">
                         <a class="nav-link" th:href="@{/medico/list}">Médicos</a>
                     </li>
-                    <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','SECRETARIA')">
+                    <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','SECRETARIA','MEDICO')">
                         <a class="nav-link" th:href="@{/agenda/list}">Agenda</a>
                     </li>
-                    <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','SECRETARIA')">
+                    <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','SECRETARIA','MEDICO')">
                         <a class="nav-link" th:href="@{/consulta/list}">Consultas</a>
                     </li>
                     <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','MEDICO')">

@@ -30,10 +30,11 @@ public class SecurityConfiguration {
                         // requisições HTTP
                         .requestMatchers("/paciente/list").hasAnyRole("ADMIN", "SECRETARIA", "PACIENTE")
                         .requestMatchers("/paciente/form","/paciente/save").permitAll()
+                        .requestMatchers("/paciente/edit/**","/paciente/update/**").hasAnyRole("PACIENTE","ADMIN")
                         .requestMatchers("/medico/**").hasAnyRole("ADMIN", "MEDICO", "SECRETARIA")
-                        .requestMatchers("/consulta/**").hasAnyRole("ADMIN", "SECRETARIA")
-                        .requestMatchers("/disponibilidade/**").hasAnyRole("ADMIN", "MEDICO")
-                        .requestMatchers("/agenda/**").hasAnyRole("ADMIN", "MEDICO", "SECRETARIA")
+                        .requestMatchers("/consulta/**").hasAnyRole("ADMIN", "SECRETARIA","MEDICO")
+                        .requestMatchers("/disponibilidade/**").hasAnyRole("ADMIN", "MEDICO","SECRETARIA")
+                        .requestMatchers("/agenda/**").hasAnyRole("ADMIN", "MEDICO", "SECRETARIA","PACIENTE")
                         // All other requests require authentication
                         .requestMatchers("/h2-console/**").permitAll() // banco h2
                         .anyRequest().authenticated()

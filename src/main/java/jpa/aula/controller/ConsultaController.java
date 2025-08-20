@@ -12,6 +12,8 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.ui.ModelMap;
@@ -75,19 +77,40 @@ public class ConsultaController {
         return new ModelAndView("/consulta/form", "agenda", agenda);
     }
 
+    @GetMapping("/exame/remove/{index}")
+    public ModelAndView removeExame(@RequestParam(value = "agendaId") Long agendaId,@PathVariable int index, Model model) {
+        // adiciona a agenda no model
+        Agenda agenda = agendaRepository.findById(agendaId);
+        // remove da lista de exames na sessão
+        if (index >= 0 && index < consulta.getExames().size()) {
+            consulta.getExames().remove(index);
+        }
+
+        // mantém um novo objeto exame para o formulário
+        model.addAttribute("exame", new Exame());
+
+        return new ModelAndView("/consulta/form", "agenda", agenda);
+    }
+
+
 
     @GetMapping("/list")
-    public ModelAndView listar(@DateTimeFormat(pattern = "dd/MM/yyyy") LocalDate dataInicial,
-                               @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFinal,
-                               @RequestParam(required = false) @DateTimeFormat(pattern = "HH:mm") LocalTime horarioInicio,
-                               @RequestParam(required = false) @DateTimeFormat(pattern = "HH:mm") LocalTime horarioFim,
-                               Model model) {
+    public ModelAndView listar(
+            @DateTimeFormat(pattern = "dd/MM/yyyy") LocalDate dataInicial,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFinal,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "HH:mm") LocalTime horarioInicio,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "HH:mm") LocalTime horarioFim,
+            Model model,
+            Authentication authentication) {
+
+        // Definir datas padrão se não fornecidas
         if (dataInicial == null && dataFinal == null) {
             LocalDate hoje = ConfiguracaoSpringMVC.obterDataFormatada();
             dataInicial = hoje;
             dataFinal = hoje;
         }
 
+        // Definir horários padrão se não fornecidos
         if (horarioInicio == null) {
             horarioInicio = ConfiguracaoSpringMVC.obterHoraMinima();
         }
@@ -101,8 +124,42 @@ public class ConsultaController {
         model.addAttribute("dataFinal", dataFinal);
         model.addAttribute("status_Consulta", Status.CONFIRMADA);
         model.addAttribute("statusConsultaList", Status.values());
-        model.addAttribute("consultas", consultaRepository.buscarTodasConsultasDeTodosMedicos(dataInicial, dataFinal, horarioInicio, horarioFim, Status.CONFIRMADA));
-        model.addAttribute("medicos", medicoRepository.medicoList());
+
+        // Verifica se o usuário é um médico logado
+        if (authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_MEDICO"))) {
+
+            String usuarioName = authentication.getName();
+
+            Medico medico = medicoRepository.buscandoMedicoPeloNomeDeUsuario(usuarioName)
+                    .orElseThrow(() -> new UsernameNotFoundException("Médico não encontrado"));
+
+            // Busca apenas as consultas do médico logado
+            model.addAttribute("consultas",
+                    consultaRepository.buscarConsultasDoMedico(
+                            medico.getId(),
+                            dataInicial,
+                            dataFinal,
+                            horarioInicio,
+                            horarioFim,
+                            Status.CONFIRMADA));
+
+            // Passa apenas o médico logado
+            model.addAttribute("medicos", List.of(medico));
+
+        } else {
+            // Caso não seja médico, busca todas as consultas de todos médicos
+            model.addAttribute("consultas",
+                    consultaRepository.buscarTodasConsultasDeTodosMedicos(
+                            dataInicial,
+                            dataFinal,
+                            horarioInicio,
+                            horarioFim,
+                            Status.CONFIRMADA));
+
+            model.addAttribute("medicos", medicoRepository.medicoList());
+        }
+
         return new ModelAndView("/consulta/list");
     }
 
@@ -115,6 +172,7 @@ public class ConsultaController {
             @RequestParam(required = false) Status statusSelecionado,
             @RequestParam(required = false) Long medicoId,
             Model model,
+            Authentication authentication,   // <- injeta usuário logado
             RedirectAttributes redirectAttributes) {
 
         if (dataInicial == null && dataFinal == null) {
@@ -132,32 +190,60 @@ public class ConsultaController {
 
         List<Consulta> consultas = new ArrayList<>();
 
-        boolean filtrarPorTodosMedicos = (medicoId == null);
-        boolean filtrarPorTodosStatus = (statusSelecionado == null);
+        // ⚡️ Verifica se usuário logado é médico
+        if (authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_MEDICO"))) {
 
-        if (filtrarPorTodosMedicos && filtrarPorTodosStatus) {
-           consultas =  consultaRepository.buscarTodasConsultasDeTodosMedicoseTodosStatus(dataInicial, dataFinal, horarioInicio, horarioFim);
-        } else if (filtrarPorTodosMedicos) {
-            consultas = consultaRepository.buscarTodasConsultasDeTodosMedicoseDoStatusSelecionado(dataInicial, dataFinal, horarioInicio, horarioFim, statusSelecionado);
-        } else if (filtrarPorTodosStatus) {
-            consultas = consultaRepository.buscaTodasConsultasDeUmMedicoeTodosStatus(dataInicial, dataFinal, horarioInicio, horarioFim, medicoId);
+            String username = authentication.getName();
+
+            Medico medico = medicoRepository.buscandoMedicoPeloNomeDeUsuario(username)
+                    .orElseThrow(() -> new UsernameNotFoundException("Médico não encontrado"));
+
+            medicoId = medico.getId(); // força sempre o médico logado
+
+            if (statusSelecionado == null) {
+                consultas = consultaRepository.buscaTodasConsultasDeUmMedicoeTodosStatus(
+                        dataInicial, dataFinal, horarioInicio, horarioFim, medicoId);
+            } else {
+                consultas = consultaRepository.buscaTodasConsultasDeUmMedicoeUmStatus(
+                        dataInicial, dataFinal, horarioInicio, horarioFim, statusSelecionado, medicoId);
+            }
+
+            model.addAttribute("medicoSelecionado", medicoId);
+
         } else {
-            consultas = consultaRepository.buscaTodasConsultasDeUmMedicoeUmStatus(dataInicial, dataFinal, horarioInicio, horarioFim, statusSelecionado, medicoId);
+            // ⚡️ Se não for médico, mantém a lógica original (admin, secretaria, etc.)
+            boolean filtrarPorTodosMedicos = (medicoId == null);
+            boolean filtrarPorTodosStatus = (statusSelecionado == null);
+
+            if (filtrarPorTodosMedicos && filtrarPorTodosStatus) {
+                consultas = consultaRepository.buscarTodasConsultasDeTodosMedicoseTodosStatus(
+                        dataInicial, dataFinal, horarioInicio, horarioFim);
+            } else if (filtrarPorTodosMedicos) {
+                consultas = consultaRepository.buscarTodasConsultasDeTodosMedicoseDoStatusSelecionado(
+                        dataInicial, dataFinal, horarioInicio, horarioFim, statusSelecionado);
+            } else if (filtrarPorTodosStatus) {
+                consultas = consultaRepository.buscaTodasConsultasDeUmMedicoeTodosStatus(
+                        dataInicial, dataFinal, horarioInicio, horarioFim, medicoId);
+            } else {
+                consultas = consultaRepository.buscaTodasConsultasDeUmMedicoeUmStatus(
+                        dataInicial, dataFinal, horarioInicio, horarioFim, statusSelecionado, medicoId);
+            }
         }
 
-
+        // atributos da view
         model.addAttribute("dataInicial", dataInicial);
         model.addAttribute("dataFinal", dataFinal);
         model.addAttribute("horarioInicio", horarioInicio);
         model.addAttribute("horarioFim", horarioFim);
-        model.addAttribute("medicoSelecionado", medicoId);
         model.addAttribute("statusConsultaList", Status.values());
         model.addAttribute("status_Consulta", Status.CONFIRMADA);
-        model.addAttribute("consultas",  consultas);
+        model.addAttribute("consultas", consultas);
         model.addAttribute("medicos", medicoRepository.medicoList());
 
         return "consulta/list";
     }
+
 
     @PostMapping("/save")
     public ModelAndView salvar(@RequestParam(value = "agendaId", required = true) Long agendaId, Model model) {

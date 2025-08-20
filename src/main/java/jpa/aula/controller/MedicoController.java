@@ -66,10 +66,10 @@ public class MedicoController {
 
             String usuarioName = authentication.getName();
 
-            Medico medico = repository.buscandoPacientePeloNomeDeUsuario(usuarioName)
+            Medico medico = repository.buscandoMedicoPeloNomeDeUsuario(usuarioName)
                     .orElseThrow(() -> new UsernameNotFoundException("Medico não encontrado"));
 
-            // aqui passo como lista, para não quebrar no Thymeleaf que espera "pacientes"
+            // aqui passo como lista, para não quebrar no Thymeleaf que espera "medicos"
             model.addAttribute("medicos", List.of(medico));
 
         } else {
